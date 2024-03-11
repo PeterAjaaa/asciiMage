@@ -10,18 +10,26 @@ import java.awt.image.BufferedImage;
 
 import javax.imageio.ImageIO;
 
-public class AsciiImageGenerator {
+public class asciiMage {
     public static void main(String[] args) {
+        final String ANSI_GREEN = "\u001B[42m";
+        final String ANSI_EMPTY = "";
+
+        int closestKey;
+        int brightnessValue;
+
         final String properImagePathString = getImagePathString();
         final BufferedImage image = loadImage(properImagePathString);
+        final int imageWidth = image.getWidth();
+        final int imageHeight = image.getHeight();
         final TreeMap<Integer, String> brightnessRepresentation = representBrightness();
         final int[] brightnessRepKeysArr = new int[brightnessRepresentation.size()];
-        final String[][] brightnessPerPixel = new String[getImageHeight(image)][getImageWidth(image)];
+        final String[][] charPerPixel = new String[imageHeight][imageWidth];
         final RgbData[][] rgbValues = getRgbValues(image);
 
         System.out.println("Image loaded.");
-        System.out.println("Image width: " + getImageWidth(image));
-        System.out.println("Image height: " + getImageHeight(image));
+        System.out.println("Image width: " + imageWidth);
+        System.out.println("Image height: " + imageHeight);
 
         int i = 0;
         for (int key : brightnessRepresentation.keySet()) {
@@ -29,21 +37,16 @@ public class AsciiImageGenerator {
             i++;
         }
 
-        for (int y = 0; y < getImageHeight(image); y++) {
-            for (int x = 0; x < getImageWidth(image); x++) {
-                brightnessPerPixel[y][x] = brightnessRepresentation
-                        .get(getClosestKey(brightnessRepKeysArr, calculateBrightness(rgbValues[y][x])));
+        for (int y = 0; y < imageHeight; y++) {
+            for (int x = 0; x < imageWidth; x++) {
+                brightnessValue = calculateBrightnessAverage(rgbValues[y][x]);
+                closestKey = getClosestKey(brightnessRepKeysArr, brightnessValue);
+                charPerPixel[y][x] = brightnessRepresentation.get(closestKey);
             }
         }
 
-        for (String[] dataOuter : brightnessPerPixel) {
-            for (String dataInner : dataOuter) {
-                System.out.print(dataInner);
-                System.out.print(dataInner);
-                System.out.print(dataInner);
-            }
-            System.out.println();
-        }
+        mainDisplay(charPerPixel, ANSI_EMPTY);
+
     }
 
     static String getImagePathString() {
@@ -87,14 +90,6 @@ public class AsciiImageGenerator {
         return image;
     }
 
-    static int getImageWidth(BufferedImage image) {
-        return image.getWidth();
-    }
-
-    static int getImageHeight(BufferedImage image) {
-        return image.getHeight();
-    }
-
     static RgbData[][] getRgbValues(BufferedImage image) {
         final RgbData[][] rgbValues = new RgbData[image.getHeight()][image.getWidth()];
 
@@ -108,7 +103,7 @@ public class AsciiImageGenerator {
         return rgbValues;
     }
 
-    static int calculateBrightness(RgbData rgbData) {
+    static int calculateBrightnessAverage(RgbData rgbData) {
         return (rgbData.r + rgbData.g + rgbData.b) / 3;
     }
 
@@ -155,6 +150,23 @@ public class AsciiImageGenerator {
             }
         }
         return (arr[low] - target) < (target - arr[high]) ? arr[low] : arr[high];
+    }
+
+    static void mainDisplay(String[][] charPerPixel, String ANSI_TEXT_COLOR) {
+        final String ANSI_RESET = "\u001B[0m";
+
+        if (ANSI_TEXT_COLOR == "") {
+            ANSI_TEXT_COLOR = "";
+        }
+
+        for (String[] dataOuter : charPerPixel) {
+            for (String dataInner : dataOuter) {
+                System.out.print(ANSI_TEXT_COLOR + dataInner + ANSI_RESET);
+                System.out.print(ANSI_TEXT_COLOR + dataInner + ANSI_RESET);
+                System.out.print(ANSI_TEXT_COLOR + dataInner + ANSI_RESET);
+            }
+            System.out.println();
+        }
     }
 }
 
