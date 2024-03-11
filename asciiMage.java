@@ -12,13 +12,15 @@ import javax.imageio.ImageIO;
 
 public class asciiMage {
     public static void main(String[] args) {
+        final Scanner SCANNER = new Scanner(System.in);
         final String ANSI_GREEN = "\u001B[42m";
         final String ANSI_EMPTY = "";
 
         int closestKey;
         int brightnessValue;
 
-        final String properImagePathString = getImagePathString();
+        final String properImagePathString = getImagePathString(SCANNER);
+        final String userBrightnessType = getUserBrightnessType(SCANNER);
         final BufferedImage image = loadImage(properImagePathString);
         final int imageWidth = image.getWidth();
         final int imageHeight = image.getHeight();
@@ -46,14 +48,14 @@ public class asciiMage {
         }
 
         mainDisplay(charPerPixel, ANSI_EMPTY);
+        SCANNER.close();
 
     }
 
-    static String getImagePathString() {
+    static String getImagePathString(Scanner scanner) {
         boolean validInput = false;
         String stringImagePath = "";
         Path imagePath = null;
-        final Scanner scanner = new Scanner(System.in);
 
         while (!validInput) {
             try {
@@ -73,9 +75,30 @@ public class asciiMage {
                 System.err.println("Please enter a valid image path.");
             }
         }
-
-        scanner.close();
         return stringImagePath;
+    }
+
+    static String getUserBrightnessType(Scanner scanner) {
+        boolean validInput = false;
+        String userBrightnessType = "";
+
+        while (!validInput) {
+            try {
+                System.out.println("Enter brightness type (average, lightness, luminosity): ");
+                userBrightnessType = scanner.nextLine();
+                if (!userBrightnessType.toLowerCase().equals("average")
+                        && !userBrightnessType.toLowerCase().equals("lightness")
+                        && !userBrightnessType.toLowerCase().equals("luminosity")) {
+                    throw new Exception("Invalid brightness type.");
+                }
+                validInput = true;
+            } catch (Exception e) {
+                System.err.println("Error: " + e.getMessage());
+                System.err.println("Error: Invalid brightness type.");
+                System.err.println("Please enter a valid brightness type.");
+            }
+        }
+        return userBrightnessType;
     }
 
     static BufferedImage loadImage(String imagePath) {
